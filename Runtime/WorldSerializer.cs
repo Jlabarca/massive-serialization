@@ -28,8 +28,10 @@ namespace Massive.Serialization
 			// Sets.
 			_setsBuffer.Clear();
 			var setsToSerialize = _setsBuffer;
-			foreach (var bitSet in world.Sets.Sorted)
+			for (var ci = 0; ci < world.Sets.ComponentCount; ci++)
 			{
+				var bitSet = world.Sets.LookupByComponentId[ci];
+				if (bitSet == null) continue;
 				var setType = world.Sets.TypeOf(bitSet);
 
 				// Check serialization attributes.
@@ -131,11 +133,13 @@ namespace Massive.Serialization
 			var componentsBitMap = world.Components.BitMap;
 			var componentsMaskLength = world.Components.MaskLength;
 			Array.Fill(componentsBitMap, 0UL);
-			foreach (var bitSet in world.Sets.Sorted)
+			for (var ci = 0; ci < world.Sets.ComponentCount; ci++)
 			{
+				var bitSet = world.Sets.LookupByComponentId[ci];
+				if (bitSet == null) continue;
 				if (!deserializedSets.Contains(bitSet))
 				{
-					bitSet.ClearWithoutNotify();
+					bitSet.Reset();
 					continue;
 				}
 

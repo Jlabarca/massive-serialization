@@ -77,13 +77,13 @@ namespace Massive.Serialization
 		{
 			WriteInt(allocator.PageCount, stream);
 
-			stream.Write(new Span<byte>(allocator.Pages[0].AlignedPtr, allocator.Pages[0].FullPageLength));
+			stream.Write(new Span<byte>(allocator.Pages[0].AlignedPtr, allocator.Pages[0].PageLengthWithBitset));
 
 			for (var i = 1; i < allocator.PageCount; i++)
 			{
 				ref var page = ref allocator.Pages[i];
 				WriteInt(page.SlotClass, stream);
-				stream.Write(new Span<byte>(page.AlignedPtr, page.FullPageLength));
+				stream.Write(new Span<byte>(page.AlignedPtr, page.PageLengthWithBitset));
 			}
 
 			stream.Write(MemoryMarshal.Cast<Pointer, byte>(allocator.NextToAlloc.AsSpan(0, Allocator.AllClassCount)));
@@ -98,7 +98,7 @@ namespace Massive.Serialization
 			allocator.EnsurePageAt(pageCount - 1);
 			allocator.SetPageCount((ushort)pageCount);
 
-			stream.Read(new Span<byte>(allocator.Pages[0].AlignedPtr, allocator.Pages[0].FullPageLength));
+			stream.Read(new Span<byte>(allocator.Pages[0].AlignedPtr, allocator.Pages[0].PageLengthWithBitset));
 
 			for (var i = 1; i < pageCount; i++)
 			{
@@ -109,7 +109,7 @@ namespace Massive.Serialization
 				var bitSetLength = Allocator.BitSetLength(slotClass);
 
 				page = new Allocator.Page(UnsafeUtils.AllocAligned(pageLength + bitSetLength, Allocator.MinPageLength), slotClass);
-				stream.Read(new Span<byte>(page.AlignedPtr, page.FullPageLength));
+				stream.Read(new Span<byte>(page.AlignedPtr, page.PageLengthWithBitset));
 			}
 
 			stream.Read(MemoryMarshal.Cast<Pointer, byte>(allocator.NextToAlloc.AsSpan(0, Allocator.AllClassCount)));
